@@ -5,3 +5,5 @@ fpdf2
 requests
 PyJWT
 sendgrid
+
+gunicorn
