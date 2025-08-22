@@ -47,6 +47,12 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY","movil_public_secret")
 
 # ---------- Helpers de imagen ----------
 def _sha8(b: bytes) -> str: return hashlib.sha1(b).hexdigest()[:8]
+@app.get("/favicon.ico")
+def favicon():
+    # Respuesta vacía (204) o sirve un icono desde /static
+    return ("", 204)
+    # o, si prefieres un icono:
+    # return send_file(BASE / "static" / "favicon.ico", mimetype="image/x-icon")
 
 def open_image(path: Path) -> Image.Image:
     im = Image.open(path)
