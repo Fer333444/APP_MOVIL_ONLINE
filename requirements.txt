@@ -1,0 +1,7 @@
+﻿flask
+waitress
+Pillow
+fpdf2
+requests
+PyJWT
+sendgrid
