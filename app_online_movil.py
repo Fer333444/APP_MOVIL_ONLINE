@@ -153,17 +153,40 @@ def print_email(path: Path, code: str, mime: str) -> bool:
         print("❌ ePrint excepción:", e)
         return False
 
-def auto_print(comp_img: Image.Image, code: str) -> None:
-    """Decide si imprime PDF o JPG según AUTO_PRINT_MODE"""
+def auto_print(comp_img, code: str) -> None:
+    """Imprime / envía en calidad estándar para ePrint."""
     mode = AUTO_PRINT_MODE
-    # Guardamos PDF siempre (para Sumatra)
+
+    # Siempre generamos el PDF por si lo necesitas (Sumatra o descarga)
     pdf_path = OUT_DIR / f"{code}.pdf"
     save_pdf(comp_img, pdf_path)
 
     if mode == "sumatra":
         print_sumatra(pdf_path)
+
     elif mode == "email":
-        print_email(pdf_path, code, "application/pdf")
+        # ⚡ Preset "estándar": ~200 DPI, JPEG baseline
+        jpg_path = OUT_DIR / f"{code}.jpg"
+
+        # Reducción a ~200 DPI para 7x5.5" (≈1400 px lado largo)
+        w, h = comp_img.size
+        MAX = 1400  # lado mayor
+        if max(w, h) > MAX:
+            r = MAX / max(w, h)
+            comp_img = comp_img.resize((int(w * r), int(h * r)), Image.LANCZOS)
+
+        comp_rgb = comp_img.convert("RGB")
+        comp_rgb.save(
+            jpg_path,
+            "JPEG",
+            quality=75,          # calidad estándar (no alta)
+            optimize=True,
+            progressive=False,   # baseline: muchos ePrint lo procesan más rápido
+            subsampling="4:2:0"  # archivo más pequeño, sin pérdida notable
+        )
+
+        print_email(jpg_path, code, "image/jpeg")  # ← adjunta JPG (más rápido que PDF)
+
     else:
         print("ℹ️ AUTO_PRINT_MODE=off (sin impresión)")
 
